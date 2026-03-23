@@ -13,7 +13,6 @@ def collector_thread():
 def detection_thread():
     while True:
         run_detection()
-        time.sleep(10)
 
 
 def dashboard_thread():
