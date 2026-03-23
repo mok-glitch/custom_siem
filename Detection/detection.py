@@ -420,3 +420,7 @@ class DetectionEngine:
 if __name__ == "__main__":
     detector = DetectionEngine()
     detector.run_continuous(interval=10)
+
+def run_detection():
+    detector = DetectionEngine()
+    detector.run_continuous(interval=10)
