@@ -405,3 +405,7 @@ class SystemCollector:
 if __name__ == "__main__":
     collector = SystemCollector()
     collector.run_continuous(interval=5)
+
+def start_collection():
+    collector = SystemCollector()
+    collector.run_continuous(interval=5)
