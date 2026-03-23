@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Event Details - SIEM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0e1a;
+            color: #e5e7eb;
+            overflow-x: hidden;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 4px;
+        }
+
+        .navbar {
+            background: #111827;
+            border-bottom: 1px solid #1f2937;
+            padding: 0 24px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 64px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo i {
+            font-size: 28px;
+            color: #3b82f6;
+        }
+
+        .logo h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-links a {
+            padding: 8px 16px;
+            color: #9ca3af;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            background: #1f2937;
+            color: #3b82f6;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .datetime {
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: #1f2937;
+            border: none;
+            border-radius: 8px;
+            color: #ef4444;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .logout-btn:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .main-content {
+            margin-top: 80px;
+            padding: 24px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #1f2937;
+            border: none;
+            border-radius: 10px;
+            color: #e5e7eb;
+            cursor: pointer;
+            text-decoration: none;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: #374151;
+            transform: translateX(-4px);
+        }
+
+        .event-header {
+            background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 24px;
+            border: 1px solid #374151;
+        }
+
+        .event-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .event-title i {
+            color: #3b82f6;
+            font-size: 32px;
+        }
+
+        .event-meta {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #374151;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .meta-item i {
+            color: #3b82f6;
+            width: 20px;
+        }
+
+        .meta-item strong {
+            color: #9ca3af;
+        }
+
+        .details-card {
+            background: #111827;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid #1f2937;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 12px;
+        }
+
+        .card-title i {
+            color: #3b82f6;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            background: #1f2937;
+            border-radius: 10px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #9ca3af;
+        }
+
+        .detail-value {
+            font-family: 'Courier New', monospace;
+            font-weight: 500;
+        }
+
+        .protocol-badge {
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .protocol-tcp { background: #3b82f6; color: white; }
+        .protocol-udp { background: #f59e0b; color: white; }
+        .protocol-icmp { background: #10b981; color: white; }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-established { background: #10b981; color: white; }
+        .status-listening { background: #3b82f6; color: white; }
+        .status-closed { background: #6b7280; color: white; }
+        .status-failed { background: #ef4444; color: white; }
+        .status-time_wait { background: #f59e0b; color: white; }
+
+        .suspicious-port {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .traffic-info {
+            margin-top: 20px;
+            padding: 16px;
+            background: #1f2937;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .traffic-item {
+            flex: 1;
+        }
+
+        .traffic-label {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 8px;
+        }
+
+        .traffic-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+
+        .related-events {
+            background: #111827;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #1f2937;
+        }
+
+        .related-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        .related-table th, .related-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #1f2937;
+        }
+
+        .related-table th {
+            color: #9ca3af;
+            font-weight: 600;
+        }
+
+        .related-table tr:hover {
+            background: #1f2937;
+            cursor: pointer;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading i {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .event-meta {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .traffic-info {
+                flex-direction: column;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-shield-haltered"></i>
+                <h2>SIEM Platform</h2>
+            </div>
+            <div class="nav-links">
+                <a href="/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a>
+                <a href="/logs"><i class="fas fa-file-alt"></i> System Logs</a>
+                <a href="/network_logs"><i class="fas fa-network-wired"></i> Network Logs</a>
+                <a href="/alerts"><i class="fas fa-bell"></i> Alerts</a>
+            </div>
+            <div class="user-info">
+                <div class="datetime" id="datetime"></div>
+                <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <a href="/network_logs" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to Network Logs
+        </a>
+
+        <div id="eventContent">
+            <div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading network event details...</div>
+        </div>
+    </div>
+
+    <script>
+        const suspiciousPorts = [21, 22, 23, 25, 53, 80, 443, 445, 3389, 1433, 3306, 5900];
+        const maliciousIPs = [
+            "185.130.5.133", "45.155.205.233", "94.102.61.78", "185.222.210.177",
+            "91.219.237.101", "185.141.27.238", "46.166.142.234", "194.87.70.175", "51.38.83.106"
+        ];
+        
+        const eventId = window.location.pathname.split('/').pop();
+
+        function updateDateTime() {
+            const now = new Date();
+            const datetimeStr = now.toLocaleString('en-US', { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit',
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                hour12: false 
+            });
+            document.getElementById('datetime').textContent = datetimeStr;
+        }
+
+        async function fetchEventDetails() {
+            try {
+                const response = await fetch(`/api/network_event/${eventId}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    renderEventDetails(data);
+                } else {
+                    document.getElementById('eventContent').innerHTML = `
+                        <div class="details-card">
+                            <div class="card-title">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Error
+                            </div>
+                            <p>Network event not found or has been removed.</p>
+                            <a href="/network_logs" class="back-button" style="margin-top: 20px; display: inline-block;">
+                                <i class="fas fa-arrow-left"></i> Return to Network Logs
+                            </a>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error fetching event details:', error);
+                document.getElementById('eventContent').innerHTML = `
+                    <div class="details-card">
+                        <div class="card-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Error
+                        </div>
+                        <p>Failed to load event details. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function getProtocolClass(protocol) {
+            switch(protocol.toUpperCase()) {
+                case 'TCP': return 'protocol-tcp';
+                case 'UDP': return 'protocol-udp';
+                case 'ICMP': return 'protocol-icmp';
+                default: return '';
+            }
+        }
+        
+        function getStatusClass(status) {
+            const statusLower = status.toLowerCase().replace(' ', '_');
+            switch(statusLower) {
+                case 'established': return 'status-established';
+                case 'listening': return 'status-listening';
+                case 'closed': return 'status-closed';
+                case 'failed': return 'status-failed';
+                case 'time_wait': return 'status-time_wait';
+                default: return '';
+            }
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function renderEventDetails(data) {
+            const event = data.event;
+            const relatedEvents = data.related_events;
+            
+            const isSuspiciousPort = suspiciousPorts.includes(event.destination_port);
+            const isMaliciousIP = maliciousIPs.includes(event.destination_ip);
+            const portClass = isSuspiciousPort ? 'suspicious-port' : '';
+            const portIcon = isSuspiciousPort ? '<i class="fas fa-exclamation-triangle"></i> ' : '';
+            const maliciousIcon = isMaliciousIP ? '<i class="fas fa-skull-crossbones"></i> ' : '';
+            
+            const html = `
+                <div class="event-header">
+                    <div class="event-title">
+                        <i class="fas fa-network-wired"></i>
+                        Network Event #${event.id}
+                    </div>
+                    <div class="event-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <strong>Timestamp:</strong> ${new Date(event.timestamp).toLocaleString()}
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-microchip"></i>
+                            <strong>Process:</strong> ${escapeHtml(event.process_name)}
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-exchange-alt"></i>
+                            <strong>Protocol:</strong> <span class="protocol-badge ${getProtocolClass(event.protocol)}">${event.protocol}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Status:</strong> <span class="status-badge ${getStatusClass(event.status)}">${event.status}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="details-card">
+                    <div class="card-title">
+                        <i class="fas fa-plug"></i>
+                        Connection Details
+                    </div>
+                    <div class="details-grid">
+                        <div class="detail-row">
+                            <span class="detail-label">Source IP:</span>
+                            <span class="detail-value">${escapeHtml(event.source_ip)}:${event.source_port}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Destination IP:</span>
+                            <span class="detail-value ${portClass}">${maliciousIcon}${escapeHtml(event.destination_ip)}:${portIcon}${event.destination_port}</span>
+                        </div>
+                        ${isMaliciousIP ? `
+                        <div class="detail-row" style="background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444;">
+                            <span class="detail-label"><i class="fas fa-skull-crossbones"></i> Threat Intel:</span>
+                            <span class="detail-value" style="color: #ef4444;">Known Malicious IP - Connection to C2/Threat Actor</span>
+                        </div>
+                        ` : ''}
+                        ${isSuspiciousPort ? `
+                        <div class="detail-row">
+                            <span class="detail-label"><i class="fas fa-exclamation-triangle"></i> Port Alert:</span>
+                            <span class="detail-value" style="color: #ef4444;">Suspicious Port - Commonly used for ${getPortDescription(event.destination_port)}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="traffic-info">
+                        <div class="traffic-item">
+                            <div class="traffic-label">Bytes Sent</div>
+                            <div class="traffic-value">${formatBytes(event.bytes_sent)}</div>
+                        </div>
+                        <div class="traffic-item">
+                            <div class="traffic-label">Bytes Received</div>
+                            <div class="traffic-value">${formatBytes(event.bytes_received)}</div>
+                        </div>
+                        <div class="traffic-item">
+                            <div class="traffic-label">Total Traffic</div>
+                            <div class="traffic-value">${formatBytes(event.bytes_sent + event.bytes_received)}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="related-events">
+                    <div class="card-title">
+                        <i class="fas fa-link"></i>
+                        Related Events (Same Source IP - ±1 Hour)
+                        <span style="font-size: 12px; margin-left: auto;">${relatedEvents.length} events found</span>
+                    </div>
+                    ${relatedEvents.length > 0 ? `
+                        <table class="related-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Timestamp</th>
+                                    <th>Destination</th>
+                                    <th>Protocol</th>
+                                    <th>Status</th>
+                                    <th>Process</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${relatedEvents.map(rel => {
+                                    const isRelSuspicious = suspiciousPorts.includes(rel.destination_port);
+                                    return `
+                                        <tr onclick="window.location.href='/network_event/${rel.id}'">
+                                            <td>#${rel.id}</td>
+                                            <td>${new Date(rel.timestamp).toLocaleString()}</td>
+                                            <td class="${isRelSuspicious ? 'suspicious-port' : ''}">${escapeHtml(rel.destination_ip)}:${rel.destination_port}</td>
+                                            <td><span class="protocol-badge ${getProtocolClass(rel.protocol)}" style="font-size: 10px;">${rel.protocol}</span></td>
+                                            <td><span class="status-badge ${getStatusClass(rel.status)}" style="font-size: 10px;">${rel.status}</span></td>
+                                            <td>${escapeHtml(rel.process_name)}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    ` : '<p style="color: #9ca3af; text-align: center; padding: 40px;">No related events found from this source IP in the last hour</p>'}
+                </div>
+            `;
+            
+            document.getElementById('eventContent').innerHTML = html;
+        }
+
+        function getPortDescription(port) {
+            const portMap = {
+                21: 'FTP',
+                22: 'SSH',
+                23: 'Telnet',
+                25: 'SMTP',
+                53: 'DNS',
+                80: 'HTTP',
+                443: 'HTTPS',
+                445: 'SMB',
+                3389: 'RDP',
+                1433: 'MSSQL',
+                3306: 'MySQL',
+                5900: 'VNC'
+            };
+            return portMap[port] || 'service';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+        fetchEventDetails();
+    </script>
+</body>
+</html>

@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIEM Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0e1a;
+            color: #e5e7eb;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+
+        /* Navigation */
+        .navbar {
+            background: #111827;
+            border-bottom: 1px solid #1f2937;
+            padding: 0 24px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 64px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo i {
+            font-size: 28px;
+            color: #3b82f6;
+        }
+
+        .logo h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-links a {
+            padding: 8px 16px;
+            color: #9ca3af;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: #1f2937;
+            color: #3b82f6;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .datetime {
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: #1f2937;
+            border: none;
+            border-radius: 8px;
+            color: #ef4444;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .logout-btn:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 80px;
+            padding: 24px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: #111827;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #1f2937;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: #3b82f6;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .stat-header i {
+            font-size: 32px;
+            opacity: 0.7;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        /* Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .chart-card {
+            background: #111827;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #1f2937;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-title i {
+            color: #3b82f6;
+        }
+
+        canvas {
+            max-height: 300px;
+        }
+
+        /* Tables */
+        .recent-alerts, .active-threats {
+            background: #111827;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #1f2937;
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title i {
+            color: #3b82f6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #1f2937;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #1f2937;
+        }
+
+        th {
+            font-weight: 600;
+            color: #9ca3af;
+            cursor: pointer;
+        }
+
+        tr:hover {
+            background: #1f2937;
+            cursor: pointer;
+        }
+
+        .severity-badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .severity-critical { background: #ef4444; color: white; }
+        .severity-high { background: #f59e0b; color: white; }
+        .severity-medium { background: #eab308; color: black; }
+        .severity-low { background: #10b981; color: white; }
+
+        .threat-item {
+            padding: 12px;
+            border-left: 3px solid #ef4444;
+            background: #1f2937;
+            margin-bottom: 12px;
+            border-radius: 8px;
+        }
+
+        .threat-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .threat-details {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        /* Loading Animation */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading i {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-shield-haltered"></i>
+                <h2>SIEM Platform</h2>
+            </div>
+            <div class="nav-links">
+                <a href="/dashboard" class="active"><i class="fas fa-chart-line"></i> Dashboard</a>
+                <a href="/logs"><i class="fas fa-file-alt"></i> System Logs</a>
+                <a href="/network_logs"><i class="fas fa-network-wired"></i> Network Logs</a>
+                <a href="/alerts"><i class="fas fa-bell"></i> Alerts</a>
+                <a href="/auth_logs"><i class="fas fa-key"></i> Auth Logs</a>
+            </div>
+            <div class="user-info">
+                <div class="datetime" id="datetime"></div>
+                <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- Stats Cards -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Total Events</span>
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div class="stat-value" id="totalEvents">0</div>
+                <div class="stat-label">Last 24 hours</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Open Alerts</span>
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-value" id="openAlerts">0</div>
+                <div class="stat-label">Needs attention</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Critical/High</span>
+                    <i class="fas fa-skull-crossbones"></i>
+                </div>
+                <div class="stat-value" id="criticalHigh">0</div>
+                <div class="stat-label">Severe threats</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Active Hosts</span>
+                    <i class="fas fa-server"></i>
+                </div>
+                <div class="stat-value" id="activeHosts">0</div>
+                <div class="stat-label">Unique IP addresses</div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title">
+                    <i class="fas fa-chart-line"></i>
+                    Event Timeline (Last 24 Hours)
+                </div>
+                <canvas id="timelineChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">
+                    <i class="fas fa-chart-pie"></i>
+                    Alert Severity Distribution
+                </div>
+                <canvas id="severityChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">
+                    <i class="fas fa-chart-bar"></i>
+                    Top Processes by CPU Usage
+                </div>
+                <canvas id="processChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Recent Alerts -->
+        <div class="recent-alerts">
+            <div class="section-title">
+                <i class="fas fa-bell"></i>
+                Recent Alerts
+                <span style="font-size: 12px; color: #9ca3af; margin-left: auto;">Click any row for investigation</span>
+            </div>
+            <div style="overflow-x: auto;">
+                <table id="alertsTable">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Title</th>
+                            <th>Severity</th>
+                            <th>Status</th>
+                            <th>Source</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alertsTableBody">
+                        <tr><td colspan="5" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading alerts...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Active Threats -->
+        <div class="active-threats">
+            <div class="section-title">
+                <i class="fas fa-skull-crossbones"></i>
+                Active Threats - Brute Force Attacks
+            </div>
+            <div id="threatsContainer">
+                <div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading threats...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize charts
+        let timelineChart, severityChart, processChart;
+        
+        // Update datetime every second
+        function updateDateTime() {
+            const now = new Date();
+            const datetimeStr = now.toLocaleString('en-US', { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit',
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                hour12: false 
+            });
+            document.getElementById('datetime').textContent = datetimeStr;
+        }
+        
+        // Fetch dashboard stats
+        async function fetchStats() {
+            try {
+                const response = await fetch('/api/dashboard/stats');
+                const data = await response.json();
+                document.getElementById('totalEvents').textContent = data.total_events.toLocaleString();
+                document.getElementById('openAlerts').textContent = data.open_alerts.toLocaleString();
+                document.getElementById('criticalHigh').textContent = data.critical_high.toLocaleString();
+                document.getElementById('activeHosts').textContent = data.active_hosts.toLocaleString();
+            } catch (error) {
+                console.error('Error fetching stats:', error);
+            }
+        }
+        
+        // Fetch timeline data
+        async function fetchTimeline() {
+            try {
+                const response = await fetch('/api/dashboard/timeline');
+                const data = await response.json();
+                
+                if (timelineChart) {
+                    timelineChart.data.labels = data.labels;
+                    timelineChart.data.datasets[0].data = data.values;
+                    timelineChart.update();
+                } else {
+                    const ctx = document.getElementById('timelineChart').getContext('2d');
+                    timelineChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                label: 'Events per Hour',
+                                data: data.values,
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    labels: { color: '#e5e7eb' }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    ticks: { color: '#9ca3af' },
+                                    grid: { color: '#1f2937' }
+                                },
+                                x: {
+                                    ticks: { color: '#9ca3af' },
+                                    grid: { color: '#1f2937' }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching timeline:', error);
+            }
+        }
+        
+        // Fetch severity data
+        async function fetchSeverity() {
+            try {
+                const response = await fetch('/api/dashboard/severity');
+                const data = await response.json();
+                
+                if (severityChart) {
+                    severityChart.data.labels = data.labels;
+                    severityChart.data.datasets[0].data = data.values;
+                    severityChart.update();
+                } else {
+                    const ctx = document.getElementById('severityChart').getContext('2d');
+                    severityChart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                data: data.values,
+                                backgroundColor: ['#ef4444', '#f59e0b', '#eab308', '#10b981']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: { color: '#e5e7eb' }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching severity:', error);
+            }
+        }
+        
+        // Fetch top processes
+        async function fetchTopProcesses() {
+            try {
+                const response = await fetch('/api/dashboard/top_processes');
+                const data = await response.json();
+                
+                if (processChart) {
+                    processChart.data.labels = data.labels;
+                    processChart.data.datasets[0].data = data.values;
+                    processChart.update();
+                } else {
+                    const ctx = document.getElementById('processChart').getContext('2d');
+                    processChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                label: 'Total CPU Usage (%)',
+                                data: data.values,
+                                backgroundColor: '#3b82f6',
+                                borderRadius: 8
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    labels: { color: '#e5e7eb' }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    ticks: { color: '#9ca3af' },
+                                    grid: { color: '#1f2937' }
+                                },
+                                x: {
+                                    ticks: { color: '#9ca3af' },
+                                    grid: { color: '#1f2937' }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching processes:', error);
+            }
+        }
+        
+        // Fetch recent alerts
+        async function fetchRecentAlerts() {
+            try {
+                const response = await fetch('/api/dashboard/recent_alerts');
+                const alerts = await response.json();
+                const tbody = document.getElementById('alertsTableBody');
+                
+                if (alerts.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="loading">No alerts found</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = alerts.map(alert => `
+                    <tr onclick="window.location.href='/investigate/${alert.id}'">
+                        <td>${new Date(alert.timestamp).toLocaleString()}</td>
+                        <td>${alert.title || 'Unknown Alert'}</td>
+                        <td><span class="severity-badge severity-${alert.severity?.toLowerCase() || 'low'}">${alert.severity || 'Low'}</span></td>
+                        <td>${alert.status || 'Open'}</td>
+                        <td>${alert.details?.source_ip || alert.details?.process_name || 'System'}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error fetching alerts:', error);
+            }
+        }
+        
+        // Fetch active threats
+        async function fetchActiveThreats() {
+            try {
+                const response = await fetch('/api/dashboard/active_threats');
+                const threats = await response.json();
+                const container = document.getElementById('threatsContainer');
+                
+                if (threats.length === 0) {
+                    container.innerHTML = '<div class="loading">No active threats detected</div>';
+                    return;
+                }
+                
+                container.innerHTML = threats.map(threat => `
+                    <div class="threat-item" onclick="window.location.href='/investigate/${threat.title.replace(/\s/g, '_')}'">
+                        <div class="threat-title">
+                            <i class="fas fa-exclamation-circle" style="color: #ef4444;"></i>
+                            ${threat.title}
+                        </div>
+                        <div class="threat-details">
+                            Source IP: ${threat.source_ip} | Attempts: ${threat.attempts} | Time: ${new Date(threat.timestamp).toLocaleString()}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error fetching threats:', error);
+            }
+        }
+        
+        // Refresh all dashboard data
+        async function refreshDashboard() {
+            await Promise.all([
+                fetchStats(),
+                fetchTimeline(),
+                fetchSeverity(),
+                fetchTopProcesses(),
+                fetchRecentAlerts(),
+                fetchActiveThreats()
+            ]);
+        }
+        
+        // Initialize
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+        refreshDashboard();
+        setInterval(refreshDashboard, 10000); // Refresh every 10 seconds
+    </script>
+</body>
+</html>

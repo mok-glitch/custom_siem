@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investigation - SIEM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0e1a;
+            color: #e5e7eb;
+            overflow-x: hidden;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 4px;
+        }
+
+        .navbar {
+            background: #111827;
+            border-bottom: 1px solid #1f2937;
+            padding: 0 24px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 64px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo i {
+            font-size: 28px;
+            color: #3b82f6;
+        }
+
+        .logo h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-links a {
+            padding: 8px 16px;
+            color: #9ca3af;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            background: #1f2937;
+            color: #3b82f6;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .datetime {
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: #1f2937;
+            border: none;
+            border-radius: 8px;
+            color: #ef4444;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .logout-btn:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .main-content {
+            margin-top: 80px;
+            padding: 24px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #1f2937;
+            border: none;
+            border-radius: 10px;
+            color: #e5e7eb;
+            cursor: pointer;
+            text-decoration: none;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: #374151;
+            transform: translateX(-4px);
+        }
+
+        .alert-header {
+            background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 24px;
+            border: 1px solid #374151;
+        }
+
+        .alert-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .severity-badge {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .severity-critical { background: #ef4444; color: white; }
+        .severity-high { background: #f59e0b; color: white; }
+        .severity-medium { background: #eab308; color: black; }
+        .severity-low { background: #10b981; color: white; }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-open { background: #ef4444; color: white; }
+        .status-confirmed { background: #10b981; color: white; }
+        .status-false-positive { background: #6b7280; color: white; }
+
+        .alert-meta {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #374151;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .meta-item i {
+            color: #3b82f6;
+        }
+
+        .investigation-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: #111827;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #1f2937;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 12px;
+        }
+
+        .card-title i {
+            color: #3b82f6;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 20px;
+            border-left: 2px solid #374151;
+            padding-left: 20px;
+            margin-left: 10px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 0;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #3b82f6;
+        }
+
+        .timeline-time {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 5px;
+        }
+
+        .timeline-content {
+            background: #1f2937;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 5px;
+        }
+
+        .event-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .event-table th, .event-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #1f2937;
+        }
+
+        .event-table th {
+            color: #9ca3af;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .event-table tr:hover {
+            background: #1f2937;
+            cursor: pointer;
+        }
+
+        .mitre-tag {
+            background: #1f2937;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: monospace;
+            display: inline-block;
+            margin: 2px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-confirm {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-confirm:hover {
+            background: #059669;
+        }
+
+        .btn-false {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-false:hover {
+            background: #4b5563;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading i {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @media (max-width: 768px) {
+            .investigation-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-shield-haltered"></i>
+                <h2>SIEM Platform</h2>
+            </div>
+            <div class="nav-links">
+                <a href="/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a>
+                <a href="/logs"><i class="fas fa-file-alt"></i> System Logs</a>
+                <a href="/network_logs"><i class="fas fa-network-wired"></i> Network Logs</a>
+                <a href="/alerts"><i class="fas fa-bell"></i> Alerts</a>
+            </div>
+            <div class="user-info">
+                <div class="datetime" id="datetime"></div>
+                <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <a href="/alerts" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to Alerts
+        </a>
+
+        <div id="investigationContent">
+            <div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading investigation data...</div>
+        </div>
+    </div>
+
+    <script>
+        const alertId = window.location.pathname.split('/').pop();
+
+        function updateDateTime() {
+            const now = new Date();
+            const datetimeStr = now.toLocaleString('en-US', { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit',
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                hour12: false 
+            });
+            document.getElementById('datetime').textContent = datetimeStr;
+        }
+
+        async function fetchInvestigationData() {
+            try {
+                const response = await fetch(`/api/investigate/${alertId}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    renderInvestigation(data);
+                } else {
+                    document.getElementById('investigationContent').innerHTML = `
+                        <div class="card">
+                            <div class="card-title">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Error
+                            </div>
+                            <p>Alert not found or has been removed.</p>
+                            <a href="/alerts" class="back-button" style="margin-top: 20px; display: inline-block;">
+                                <i class="fas fa-arrow-left"></i> Return to Alerts
+                            </a>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error fetching investigation data:', error);
+                document.getElementById('investigationContent').innerHTML = `
+                    <div class="card">
+                        <div class="card-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Error
+                        </div>
+                        <p>Failed to load investigation data. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function updateAlertStatus(status) {
+            try {
+                const response = await fetch(`/api/alert/${alertId}/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: status })
+                });
+                
+                if (response.ok) {
+                    fetchInvestigationData();
+                }
+            } catch (error) {
+                console.error('Error updating alert:', error);
+            }
+        }
+
+        function renderInvestigation(data) {
+            const alert = data.alert;
+            const relatedEvents = data.related_events || [];
+            const similarAlerts = data.similar_alerts || [];
+            const timeline = data.timeline || [];
+            
+            const html = `
+                <div class="alert-header">
+                    <div class="alert-title">
+                        <i class="fas fa-bell"></i>
+                        ${escapeHtml(alert.title)}
+                        <span class="severity-badge severity-${alert.severity?.toLowerCase()}">${alert.severity}</span>
+                        <span class="status-badge status-${alert.status?.toLowerCase().replace(' ', '-')}">${alert.status}</span>
+                    </div>
+                    <div class="alert-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <strong>Detected:</strong> ${new Date(alert.timestamp).toLocaleString()}
+                        </div>
+                        ${alert.details?.source_ip ? `
+                        <div class="meta-item">
+                            <i class="fas fa-network-wired"></i>
+                            <strong>Source IP:</strong> ${escapeHtml(alert.details.source_ip)}
+                        </div>
+                        ` : ''}
+                        ${alert.details?.process_name ? `
+                        <div class="meta-item">
+                            <i class="fas fa-microchip"></i>
+                            <strong>Process:</strong> ${escapeHtml(alert.details.process_name)}
+                        </div>
+                        ` : ''}
+                        ${alert.details?.attempts ? `
+                        <div class="meta-item">
+                            <i class="fas fa-chart-line"></i>
+                            <strong>Attempts:</strong> ${alert.details.attempts}
+                        </div>
+                        ` : ''}
+                    </div>
+                    ${alert.mitre_techniques ? `
+                    <div style="margin-top: 16px;">
+                        <strong><i class="fas fa-shield-alt"></i> MITRE ATT&CK Techniques:</strong><br>
+                        ${alert.mitre_techniques.map(tech => `<span class="mitre-tag">${escapeHtml(tech)}</span>`).join('')}
+                    </div>
+                    ` : ''}
+                    <div class="action-buttons">
+                        ${alert.status !== 'Confirmed' ? 
+                            `<button class="btn btn-confirm" onclick="updateAlertStatus('Confirmed')">
+                                <i class="fas fa-check"></i> Confirm Threat
+                            </button>` : ''}
+                        ${alert.status !== 'False Positive' ? 
+                            `<button class="btn btn-false" onclick="updateAlertStatus('False Positive')">
+                                <i class="fas fa-times"></i> Mark as False Positive
+                            </button>` : ''}
+                    </div>
+                </div>
+
+                <div class="investigation-grid">
+                    <div class="card">
+                        <div class="card-title">
+                            <i class="fas fa-history"></i>
+                            Event Timeline
+                        </div>
+                        ${timeline.length > 0 ? `
+                            <div class="timeline">
+                                ${timeline.map(item => `
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">
+                                            <i class="fas fa-clock"></i> ${new Date(item.timestamp).toLocaleString()}
+                                        </div>
+                                        <div class="timeline-content">
+                                            <strong>${item.type}</strong><br>
+                                            ${escapeHtml(item.details)}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : '<p style="color: #9ca3af; text-align: center;">No timeline events available</p>'}
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">
+                            <i class="fas fa-chart-line"></i>
+                            Alert Statistics
+                        </div>
+                        <div style="display: grid; gap: 12px;">
+                            <div class="detail-row" style="display: flex; justify-content: space-between; padding: 12px; background: #1f2937; border-radius: 8px;">
+                                <span>Total Similar Alerts:</span>
+                                <strong>${similarAlerts.length}</strong>
+                            </div>
+                            <div class="detail-row" style="display: flex; justify-content: space-between; padding: 12px; background: #1f2937; border-radius: 8px;">
+                                <span>Related Events Found:</span>
+                                <strong>${relatedEvents.length}</strong>
+                            </div>
+                            ${alert.details?.attempts ? `
+                            <div class="detail-row" style="display: flex; justify-content: space-between; padding: 12px; background: #1f2937; border-radius: 8px;">
+                                <span>Total Attempts:</span>
+                                <strong style="color: #ef4444;">${alert.details.attempts}</strong>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+
+                ${relatedEvents.length > 0 ? `
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-title">
+                        <i class="fas fa-database"></i>
+                        Related Events
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="event-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Event Type</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${relatedEvents.slice(0, 15).map(event => `
+                                    <tr onclick="window.location.href='/event/${event.id}'">
+                                        <td>${new Date(event.timestamp).toLocaleString()}</td>
+                                        <td>Authentication</td>
+                                        <td>Username: ${escapeHtml(event.username)} | Status: ${event.status} | IP: ${escapeHtml(event.source_ip)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                ` : ''}
+
+                ${similarAlerts.length > 0 ? `
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-clone"></i>
+                        Similar Alerts
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="event-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Severity</th>
+                                    <th>Status</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${similarAlerts.map(alert => `
+                                    <tr onclick="window.location.href='/investigate/${alert.id}'">
+                                        <td>${new Date(alert.timestamp).toLocaleString()}</td>
+                                        <td><span class="severity-badge severity-${alert.severity?.toLowerCase()}" style="font-size: 11px;">${alert.severity}</span></td>
+                                        <td><span class="status-badge status-${alert.status?.toLowerCase().replace(' ', '-')}" style="font-size: 11px;">${alert.status}</span></td>
+                                        <td>${escapeHtml(alert.title)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                ` : ''}
+            `;
+            
+            document.getElementById('investigationContent').innerHTML = html;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+        fetchInvestigationData();
+    </script>
+</body>
+</html>

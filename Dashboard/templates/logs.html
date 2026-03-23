@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Logs - SIEM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0e1a;
+            color: #e5e7eb;
+            overflow-x: hidden;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 4px;
+        }
+
+        .navbar {
+            background: #111827;
+            border-bottom: 1px solid #1f2937;
+            padding: 0 24px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 64px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo i {
+            font-size: 28px;
+            color: #3b82f6;
+        }
+
+        .logo h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-links a {
+            padding: 8px 16px;
+            color: #9ca3af;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: #1f2937;
+            color: #3b82f6;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .datetime {
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: #1f2937;
+            border: none;
+            border-radius: 8px;
+            color: #ef4444;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .logout-btn:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .main-content {
+            margin-top: 80px;
+            padding: 24px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .page-header p {
+            color: #9ca3af;
+        }
+
+        .filters-card {
+            background: #111827;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #1f2937;
+            margin-bottom: 24px;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-group input, .filter-group select {
+            padding: 10px 12px;
+            background: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            color: #e5e7eb;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+        }
+
+        .filter-group input:focus, .filter-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-secondary {
+            background: #374151;
+            color: #e5e7eb;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .logs-table-container {
+            background: #111827;
+            border-radius: 16px;
+            border: 1px solid #1f2937;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #1f2937;
+        }
+
+        th, td {
+            padding: 14px 12px;
+            text-align: left;
+            border-bottom: 1px solid #1f2937;
+        }
+
+        th {
+            font-weight: 600;
+            color: #9ca3af;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        th:hover {
+            color: #3b82f6;
+        }
+
+        th i {
+            margin-left: 6px;
+            font-size: 12px;
+        }
+
+        tr {
+            transition: all 0.2s ease;
+        }
+
+        tr:hover {
+            background: #1f2937;
+            cursor: pointer;
+        }
+
+        .cpu-high {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .cpu-medium {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        .memory-high {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .process-name {
+            color: #3b82f6;
+            font-weight: 500;
+        }
+
+        .command-line {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-top: 1px solid #1f2937;
+        }
+
+        .pagination button {
+            padding: 8px 16px;
+            background: #1f2937;
+            border: none;
+            border-radius: 8px;
+            color: #e5e7eb;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #3b82f6;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            color: #9ca3af;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading i {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @media (max-width: 768px) {
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-shield-haltered"></i>
+                <h2>SIEM Platform</h2>
+            </div>
+            <div class="nav-links">
+                <a href="/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a>
+                <a href="/logs" class="active"><i class="fas fa-file-alt"></i> System Logs</a>
+                <a href="/network_logs"><i class="fas fa-network-wired"></i> Network Logs</a>
+                <a href="/alerts"><i class="fas fa-bell"></i> Alerts</a>
+                <a href="/auth_logs"><i class="fas fa-key"></i> Auth Logs</a>
+            </div>
+            <div class="user-info">
+                <div class="datetime" id="datetime"></div>
+                <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1><i class="fas fa-file-alt"></i> System Logs</h1>
+            <p>Real-time process monitoring and telemetry data</p>
+        </div>
+
+        <div class="filters-card">
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label><i class="fas fa-search"></i> Process Name</label>
+                    <input type="text" id="searchProcess" placeholder="Search process name...">
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-calendar"></i> Date From</label>
+                    <input type="datetime-local" id="dateFrom">
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-calendar"></i> Date To</label>
+                    <input type="datetime-local" id="dateTo">
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-list"></i> Limit</label>
+                    <select id="limit">
+                        <option value="50">50 records</option>
+                        <option value="100" selected>100 records</option>
+                        <option value="200">200 records</option>
+                        <option value="500">500 records</option>
+                    </select>
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-primary" onclick="applyFilters()">
+                    <i class="fas fa-filter"></i> Apply Filters
+                </button>
+                <button class="btn btn-secondary" onclick="resetFilters()">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
+                <button class="btn btn-danger" onclick="clearLogs()">
+                    <i class="fas fa-trash"></i> Clear Logs
+                </button>
+            </div>
+        </div>
+
+        <div class="logs-table-container">
+            <div style="overflow-x: auto;">
+                <table id="logsTable">
+                    <thead>
+                        <tr>
+                            <th onclick="sortBy('seq_id')"># <i class="fas fa-sort"></i></th>
+                            <th onclick="sortBy('timestamp')">Timestamp <i class="fas fa-sort"></i></th>
+                            <th onclick="sortBy('process_name')">Process Name <i class="fas fa-sort"></i></th>
+                            <th onclick="sortBy('cpu_percent')">CPU (%) <i class="fas fa-sort"></i></th>
+                            <th onclick="sortBy('memory_mb')">Memory (MB) <i class="fas fa-sort"></i></th>
+                            <th>Command Line</th>
+                            <th>User</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsTableBody">
+                        <tr><td colspan="7" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading logs...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination" id="pagination">
+                <button id="prevPage" onclick="changePage(-1)"><i class="fas fa-chevron-left"></i> Previous</button>
+                <div class="page-info" id="pageInfo">Page 1 of 1</div>
+                <button id="nextPage" onclick="changePage(1)">Next <i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let currentLimit = 100;
+        let currentSortBy = 'id';
+        let currentSortOrder = 'desc';
+        let totalPages = 1;
+        let autoRefresh = true;
+        let refreshInterval;
+
+        function updateDateTime() {
+            const now = new Date();
+            const datetimeStr = now.toLocaleString('en-US', { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit',
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                hour12: false 
+            });
+            document.getElementById('datetime').textContent = datetimeStr;
+        }
+
+        async function fetchLogs() {
+            const search = document.getElementById('searchProcess').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            const limit = document.getElementById('limit').value;
+            
+            currentLimit = parseInt(limit);
+            
+            const params = new URLSearchParams({
+                search: search,
+                date_from: dateFrom,
+                date_to: dateTo,
+                limit: currentLimit,
+                page: currentPage,
+                sort_by: currentSortBy,
+                sort_order: currentSortOrder
+            });
+            
+            try {
+                const response = await fetch(`/api/logs?${params}`);
+                const data = await response.json();
+                
+                totalPages = data.total_pages;
+                renderTable(data.data);
+                updatePagination(data.page, data.total_pages);
+            } catch (error) {
+                console.error('Error fetching logs:', error);
+            }
+        }
+        
+        function renderTable(logs) {
+            const tbody = document.getElementById('logsTableBody');
+            
+            if (logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="loading">No logs found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = logs.map(log => {
+                const cpuClass = log.cpu_percent > 80 ? 'cpu-high' : (log.cpu_percent > 50 ? 'cpu-medium' : '');
+                const memClass = log.memory_mb > 700 ? 'memory-high' : '';
+                const cmdTruncated = log.command_line.length > 60 ? log.command_line.substring(0, 60) + '...' : log.command_line;
+                
+                return `
+                    <tr onclick="window.location.href='/event/${log.id}'">
+                        <td>${log.seq_id}</td>
+                        <td>${new Date(log.timestamp).toLocaleString()}</td>
+                        <td><span class="process-name">${escapeHtml(log.process_name)}</span></td>
+                        <td class="${cpuClass}">${log.cpu_percent}%</td>
+                        <td class="${memClass}">${log.memory_mb} MB</td>
+                        <td><div class="command-line" title="${escapeHtml(log.command_line)}">${escapeHtml(cmdTruncated)}</div></td>
+                        <td>${escapeHtml(log.user)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function updatePagination(page, total) {
+            document.getElementById('pageInfo').textContent = `Page ${page} of ${total}`;
+            document.getElementById('prevPage').disabled = page === 1;
+            document.getElementById('nextPage').disabled = page === total;
+        }
+        
+        function changePage(delta) {
+            const newPage = currentPage + delta;
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                fetchLogs();
+            }
+        }
+        
+        function applyFilters() {
+            currentPage = 1;
+            fetchLogs();
+        }
+        
+        function resetFilters() {
+            document.getElementById('searchProcess').value = '';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            document.getElementById('limit').value = '100';
+            currentPage = 1;
+            currentSortBy = 'id';
+            currentSortOrder = 'desc';
+            fetchLogs();
+        }
+        
+        function sortBy(column) {
+            if (currentSortBy === column) {
+                currentSortOrder = currentSortOrder === 'desc' ? 'asc' : 'desc';
+            } else {
+                currentSortBy = column;
+                currentSortOrder = 'desc';
+            }
+            currentPage = 1;
+            fetchLogs();
+        }
+        
+        async function clearLogs() {
+            if (confirm('⚠️ Are you sure you want to clear ALL system logs? This action cannot be undone!')) {
+                try {
+                    const response = await fetch('/api/logs/clear', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type: 'system' })
+                    });
+                    
+                    if (response.ok) {
+                        alert('Logs cleared successfully!');
+                        fetchLogs();
+                    }
+                } catch (error) {
+                    console.error('Error clearing logs:', error);
+                    alert('Failed to clear logs');
+                }
+            }
+        }
+        
+        // Auto-refresh functionality
+        function startAutoRefresh() {
+            if (refreshInterval) clearInterval(refreshInterval);
+            refreshInterval = setInterval(() => {
+                if (autoRefresh) fetchLogs();
+            }, 5000);
+        }
+        
+        // Initialize
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+        fetchLogs();
+        startAutoRefresh();
+        
+        // Add refresh on visibility change
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                fetchLogs();
+            }
+        });
+    </script>
+</body>
+</html>
